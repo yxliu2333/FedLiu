@@ -18,6 +18,10 @@ def parseArg():
     parser.add_argument('-conf', metavar='conf_file', nargs=1, 
                         help='the config file for FedMD.'
                        )
+    parser.add_argument('--beta', type=float, default=1.0, help='超参数 beta，默认为 1.0')
+    parser.add_argument('--gamma', type=float, default=1.0, help='超参数 gamma，默认为 1.0')
+    parser.add_argument('--tauDIST', type=float, default=1.0, help='超参数 tauDIST，默认为 1.0')
+    parser.add_argument('--tauKL', type=float, default=1.0, help='超参数 tauKL，默认为 1.0')
 
     conf_file = os.path.abspath("conf/EMNIST_imbalance_conf.json")
     
@@ -25,13 +29,13 @@ def parseArg():
         args = parser.parse_args(sys.argv[1:])
         if args.conf:
             conf_file = args.conf[0]
-    return conf_file
+    return conf_file, args.beta, args.gamma, args.tauDIST, args.tauKL
 
 CANDIDATE_MODELS = {"2_layer_CNN": cnn_2layer_fc_model, 
                     "3_layer_CNN": cnn_3layer_fc_model} 
 
 if __name__ == "__main__":
-    conf_file =  parseArg()
+    conf_file, beta, gamma, tauDIST, tauKL =  parseArg()
     with open(conf_file, "r") as f:
         conf_dict = eval(f.read())
         
@@ -133,7 +137,11 @@ if __name__ == "__main__":
                   N_logits_matching_round = N_logits_matching_round,
                   logits_matching_batchsize = logits_matching_batchsize, 
                   N_private_training_round = N_private_training_round, 
-                  private_training_batchsize = private_training_batchsize)
+                  private_training_batchsize = private_training_batchsize,
+                  beta=beta,
+                  gamma=gamma,
+                  tauDIST=tauDIST,
+                  tauKL=tauKL)
     
     initialization_result = fedmd.init_result
     pooled_train_result = fedmd.pooled_train_result
@@ -150,12 +158,12 @@ if __name__ == "__main__":
                 raise    
     
     
-    with open(os.path.join(save_dir_path, 'pre_train_result.pkl'), 'wb') as f:
-        pickle.dump(pre_train_result, f, protocol=pickle.HIGHEST_PROTOCOL)
-    with open(os.path.join(save_dir_path, 'init_result.pkl'), 'wb') as f:
-        pickle.dump(initialization_result, f, protocol=pickle.HIGHEST_PROTOCOL)
-    with open(os.path.join(save_dir_path, 'pooled_train_result.pkl'), 'wb') as f:
-        pickle.dump(pooled_train_result, f, protocol=pickle.HIGHEST_PROTOCOL)
-    with open(os.path.join(save_dir_path, 'col_performance.pkl'), 'wb') as f:
-        pickle.dump(collaboration_performance, f, protocol=pickle.HIGHEST_PROTOCOL)
+    # with open(os.path.join(save_dir_path, 'pre_train_result.pkl'), 'wb') as f:
+    #     pickle.dump(pre_train_result, f, protocol=pickle.HIGHEST_PROTOCOL)
+    # with open(os.path.join(save_dir_path, 'init_result.pkl'), 'wb') as f:
+    #     pickle.dump(initialization_result, f, protocol=pickle.HIGHEST_PROTOCOL)
+    # with open(os.path.join(save_dir_path, 'pooled_train_result.pkl'), 'wb') as f:
+    #     pickle.dump(pooled_train_result, f, protocol=pickle.HIGHEST_PROTOCOL)
+    # with open(os.path.join(save_dir_path, 'col_performance.pkl'), 'wb') as f:
+    #     pickle.dump(collaboration_performance, f, protocol=pickle.HIGHEST_PROTOCOL)
         
